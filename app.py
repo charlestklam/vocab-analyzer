@@ -155,8 +155,8 @@ if st.session_state["results"]:
             if tier_data["Tier"]:
                 tier_df = pd.DataFrame(tier_data)
                 chart_lfp = alt.Chart(tier_df).mark_bar().encode(
-                    x=alt.X('Tier:O', sort=["K1", "K2-K5", "K6-K10", "K11-K25", "OFF"]),
-                    y=alt.Y('mean(Count):Q', axis=alt.Axis(format='%', title='Percentage of Text')),
+                    y=alt.Y('Tier:O', sort=["K1", "K2-K5", "K6-K10", "K11-K25", "OFF"]),
+                    x=alt.X('mean(Count):Q', axis=alt.Axis(format='%', title='Percentage of Text')),
                     tooltip=['Tier', alt.Tooltip('mean(Count):Q', format='.2%')]
                 ).properties(
                     title='Average Lexical Frequency Profile Across Corpus'
@@ -171,16 +171,16 @@ if st.session_state["results"]:
             with col1:
                 # Boxplot of Lexical Density
                 chart_ld = alt.Chart(df).mark_boxplot(extent='min-max').encode(
-                    y=alt.Y('LD:Q', title='Lexical Density (Content Words / Total)'),
-                    x=alt.X('Level:N', title='Group') if 'Level' in df.columns and df['Level'].nunique() > 1 else alt.value('Corpus')
+                    x=alt.X('LD:Q', title='Lexical Density (Content Words / Total)'),
+                    y=alt.Y('Level:N', title='Group') if 'Level' in df.columns and df['Level'].nunique() > 1 else alt.value('Corpus')
                 ).properties(title='Lexical Density Distribution')
                 st.altair_chart(chart_ld, use_container_width=True)
                 
             with col2:
                 # Boxplot of TTR
                 chart_ttr = alt.Chart(df).mark_boxplot(extent='min-max').encode(
-                    y=alt.Y('TTR:Q', title='Type-Token Ratio'),
-                    x=alt.X('Level:N', title='Group') if 'Level' in df.columns and df['Level'].nunique() > 1 else alt.value('Corpus')
+                    x=alt.X('TTR:Q', title='Type-Token Ratio'),
+                    y=alt.Y('Level:N', title='Group') if 'Level' in df.columns and df['Level'].nunique() > 1 else alt.value('Corpus')
                 ).properties(title='TTR Distribution')
                 st.altair_chart(chart_ttr, use_container_width=True)
                 

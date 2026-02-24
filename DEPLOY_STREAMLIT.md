@@ -12,7 +12,7 @@ Follow these steps to deploy the Vocabulary Analyzer app to the web for free usi
 Your local repository is already initialized and your initial code is committed. Now, you need to push it to a new remote repository on GitHub:
 
 1.  Go to [GitHub](https://github.com/) and create a **New repository**.
-2.  Name it (e.g., `vocab-analyzer-app`).
+2.  Name it (e.g., `vocab-analyzer`).
 3.  Do **not** initialize it with a README, .gitignore, or license (leave those unchecked).
 4.  Copy the URL of your new repository.
 5.  Open your terminal, navigate to the `/home/charles/Documents/Chile_Writing_Corpus/vocab_app` directory, and run the following commands (replace `<YOUR_REPO_URL>` with the URL you just copied):
@@ -31,7 +31,7 @@ Once your code is pushed to GitHub, deploying to Streamlit is a few clicks away:
 2.  Click the **"New app"** button.
 3.  If prompted to "Deploy an app", select **"Deploy from a GitHub repo"**.
 4.  Fill in the deployment details:
-    *   **Repository:** Select your newly created repository (e.g., `yourusername/vocab-analyzer-app`).
+    *   **Repository:** Select your newly created repository (e.g., `yourusername/vocab-analyzer`).
     *   **Branch:** Select `main`.
     *   **Main file path:** Enter `app.py`.
     *   **App URL (optional):** You can customize the URL of your app or leave it blank for a random one.
