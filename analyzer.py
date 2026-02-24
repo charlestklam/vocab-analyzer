@@ -1,9 +1,45 @@
-import spacy
 import pandas as pd
 from collections import Counter
 from wordfreq import top_n_list
-# Load the core English model from spaCy
-nlp = spacy.load("en_core_web_sm")
+import string
+import nltk
+
+# Download required NLTK resources silently
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True) # For newer nltk versions
+nltk.download('averaged_perceptron_tagger', quiet=True)
+nltk.download('averaged_perceptron_tagger_eng', quiet=True)
+nltk.download('wordnet', quiet=True)
+
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet
+
+lemmatizer = WordNetLemmatizer()
+
+def get_wordnet_pos(treebank_tag):
+    if treebank_tag.startswith('J'):
+        return wordnet.ADJ
+    elif treebank_tag.startswith('V'):
+        return wordnet.VERB
+    elif treebank_tag.startswith('N'):
+        return wordnet.NOUN
+    elif treebank_tag.startswith('R'):
+        return wordnet.ADV
+    else:
+        return wordnet.NOUN
+
+def map_pos_to_spacy_equiv(treebank_tag):
+    if treebank_tag.startswith('J'):
+        return "ADJ"
+    elif treebank_tag.startswith('V'):
+        return "VERB"
+    elif treebank_tag.startswith('N'):
+        return "NOUN" 
+    elif treebank_tag.startswith('R'):
+        return "ADV"
+    else:
+        return "OTHER"
 
 def generate_k_bands_dictionary():
     """
@@ -29,36 +65,51 @@ class LexicalAnalyzer:
         self.k_bands = k_bands if k_bands is not None else DEFAULT_K_BANDS
     
     def analyze_text(self, text, doc_id="Unknown", level="Unknown"):
-        doc = nlp(text)
+        # Tokenize
+        raw_tokens = word_tokenize(text)
         
-        # 1. Basic Counts
-        # Exclude pure punctuation and spaces from token count if desired, but typically 
-        # vocabulary profile tools count alphabetic/numeric tokens.
-        tokens_list = [t for t in doc if t.is_alpha or t.is_digit]
-        tokens_str = [t.text.lower() for t in tokens_list]
-        lemmas_str = [t.lemma_.lower() for t in tokens_list]
+        # Filter for alpha and digits (like is_alpha or is_digit)
+        tokens_list = [t for t in raw_tokens if any(c.isalpha() or c.isdigit() for c in t)]
+        
+        # POS Tag
+        pos_tags = nltk.pos_tag(tokens_list)
+        
+        # Lemmatize
+        lemmas_str = []
+        for word, tag in pos_tags:
+            wn_pos = get_wordnet_pos(tag)
+            lemmas_str.append(lemmatizer.lemmatize(word.lower(), wn_pos))
+            
+        tokens_str = [t.lower() for t in tokens_list]
         
         tokens_total = len(tokens_list)
         types_total = len(set(tokens_str))
         
-        # Function Words vs Content Words
-        content_pos = {"NOUN", "PROPN", "VERB", "ADJ", "ADV"}
-        content_words = [t for t in tokens_list if t.pos_ in content_pos]
-        function_words = [t for t in tokens_list if t.pos_ not in content_pos]
+        content_pos = {"NOUN", "VERB", "ADJ", "ADV"}
+        
+        content_words = []
+        function_words = []
+        
+        pos_data = {
+            "NOUN": [],
+            "VERB": [],
+            "ADJ": [],
+            "ADV": [],
+        }
+        
+        for word, tag in pos_tags:
+            spacy_pos = map_pos_to_spacy_equiv(tag)
+            if spacy_pos in content_pos:
+                content_words.append(word)
+                pos_data[spacy_pos].append(word)
+            else:
+                function_words.append(word)
         
         cw_count = len(content_words)
         fw_count = len(function_words)
         ld = cw_count / tokens_total if tokens_total > 0 else 0
         ttr = types_total / tokens_total if tokens_total > 0 else 0
         tt_ratio = tokens_total / types_total if types_total > 0 else 0
-        
-        # 2. Part of Speech Grouping
-        pos_data = {
-            "NOUN": [t for t in tokens_list if t.pos_ in ("NOUN", "PROPN")],
-            "VERB": [t for t in tokens_list if t.pos_ == "VERB"],
-            "ADJ": [t for t in tokens_list if t.pos_ == "ADJ"],
-            "ADV": [t for t in tokens_list if t.pos_ == "ADV"],
-        }
         
         res = {
             "ID": doc_id,
@@ -69,7 +120,7 @@ class LexicalAnalyzer:
         }
         
         for pos, t_list in pos_data.items():
-            t_strs = [t.text.lower() for t in t_list]
+            t_strs = [t.lower() for t in t_list]
             t_types = set(t_strs)
             
             res[f"{pos}_tokens"] = len(t_list)
@@ -85,7 +136,6 @@ class LexicalAnalyzer:
         })
         
         # 3. K-Band Frequency Distribution (Lexical Profiling)
-        # BNC/COCA lists typically map word families (represented by the lemma).
         families_found = set()
         k_counts = {f"K{i}": 0 for i in range(1, 26)}
         k_counts["OFF"] = 0
@@ -94,7 +144,7 @@ class LexicalAnalyzer:
             band = self.k_bands.get(lemma, "OFF")
             k_counts[band] += 1
             if band != "OFF":
-                families_found.add(lemma) # Approximate word family matching for now via lemmas
+                families_found.add(lemma) 
                 
         fam_count = len(families_found)
         res["FAM"] = fam_count
