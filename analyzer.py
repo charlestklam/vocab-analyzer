@@ -2,14 +2,10 @@ import spacy
 import pandas as pd
 from collections import Counter
 from wordfreq import top_n_list
+import en_core_web_sm
 
 # Load the core English model from spaCy
-from spacy.cli import download
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+nlp = en_core_web_sm.load()
 
 def generate_k_bands_dictionary():
     """
