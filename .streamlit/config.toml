@@ -1,0 +1,15 @@
+[theme]
+# Primary accent color for interactive elements
+primaryColor = "#2E8B57" # Sea Green
+
+# Application background color
+backgroundColor = "#FAFAFA" # Off-white/light gray
+
+# Secondary background color (used for the sidebar, widgets, etc.)
+secondaryBackgroundColor = "#F0F4F8" # Soft Slate Blue
+
+# Text color
+textColor = "#102A43" # Deep Navy Blue
+
+# Font family ('sans serif', 'serif', or 'monospace')
+font = "sans serif"
