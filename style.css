@@ -1,0 +1,82 @@
+/* Custom CSS for tab-like radio buttons */
+
+/* Target the radio buttons container */
+div[data-testid="stRadio"] div[role="radiogroup"] {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Style all radio button wrappers (the text container inside the label) */
+div[data-testid="stRadio"] div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] {
+    padding: 0.5rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    background-color: transparent !important;
+    color: #666 !important;
+}
+
+/* Hide the radio button circles completely */
+div[data-testid="stRadio"] div[role="radiogroup"] label>div:first-child {
+    display: none !important;
+}
+
+/* Make sure the native radio input remains hidden */
+div[data-testid="stRadio"] input[type="radio"] {
+    display: none !important;
+}
+
+/* 
+  Style for SELECTED radio button.
+  We use the `+ div` sibling selector because older browsers 
+  might not support `:has()` selector.
+*/
+div[data-testid="stRadio"] input[type="radio"]:checked+div {
+    background-color: #dcedc8 !important;
+    /* light green */
+    color: #044800 !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Also style the text element inside the selected div if Streamlit nests it */
+div[data-testid="stRadio"] input[type="radio"]:checked+div>div[data-testid="stMarkdownContainer"],
+div[data-testid="stRadio"] input[type="radio"]:checked~div>div[data-testid="stMarkdownContainer"] {
+    color: #333 !important;
+}
+
+/* Hover effect for unselected tabs */
+div[data-testid="stRadio"] div[role="radiogroup"] label:hover div[data-testid="stMarkdownContainer"] {
+    background-color: #f0f2f6 !important;
+    border-radius: 0.5rem !important;
+}
+
+/* Prevent hover effect from overriding the selected tab styling */
+div[data-testid="stRadio"] input[type="radio"]:checked+div:hover,
+div[data-testid="stRadio"] label:hover>input[type="radio"]:checked+div,
+div[data-testid="stRadio"] input[type="radio"]:checked+div:hover>div[data-testid="stMarkdownContainer"] {
+    background-color: #dcedc8 !important;
+    /* keep light green */
+}
+
+/* Shrink color picker for compact layouts */
+div[data-testid="stColorPicker"] {
+    width: 2rem !important;
+    min-width: 2rem !important;
+    height: 1.8rem !important;
+}
+
+div[data-testid="stColorPicker"] > div {
+    height: 100% !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+div[data-testid="stColorPicker"] input[type="color"] {
+    padding: 0 !important;
+    border: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    cursor: pointer !important;
+}

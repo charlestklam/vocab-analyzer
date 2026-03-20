@@ -1,8 +1,8 @@
 .venv/
+.devcontainer/
+.streamlit/
 __pycache__/
+private/
 *.pyc
-
-# Ignore raw data files
-data/openalex_ai_criticality_filtered.jsonl
-data/openalex_5525.json
-data/batch_50.json
+*.tmp
+recompute_results.py

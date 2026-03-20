@@ -41,20 +41,43 @@ def map_pos_to_spacy_equiv(treebank_tag):
     else:
         return "OTHER"
 
-def generate_k_bands_dictionary():
+def load_bnc_coca_bands():
     """
-    Synthesize a K1-K25 mapping using the top 25,000 English words from wordfreq.
-    Maps lemmas to their frequency band (K1..K25).
+    Load K-bands from BNC_COCA_lists.json (ground truth).
+    Maps word forms (and their lemmas) to their frequency band (K1..K25).
     """
+    import os, json
     k_bands = {}
-    top_words = top_n_list('en', 25000)
-    for index, word in enumerate(top_words):
-        band = (index // 1000) + 1
-        k_bands[word] = f"K{band}"
+    json_path = os.path.join(os.path.dirname(__file__), 'data', 'BNC_COCA_lists.json')
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        for item in data:
+            form = item.get('form', '').lower()
+            lemma = item.get('lemma', '').lower()
+            raw_band = item.get('band', '')
+            
+            num_part = ''.join(filter(str.isdigit, raw_band))
+            if num_part:
+                band_label = f"K{num_part}"
+            else:
+                band_label = "OFF"
+                
+            if form:
+                k_bands[form] = band_label
+            if lemma and lemma not in k_bands:
+                k_bands[lemma] = band_label
+    except Exception as e:
+        print(f"Error loading BNC_COCA list: {e}. Falling back to wordfreq.")
+        top_words = top_n_list('en', 25000)
+        for index, word in enumerate(top_words):
+            band = (index // 1000) + 1
+            k_bands[word] = f"K{band}"
+            
     return k_bands
 
-# Pre-generate the 25k dictionary
-DEFAULT_K_BANDS = generate_k_bands_dictionary()
+# Pre-generate the 25k dictionary from ground truth
+DEFAULT_K_BANDS = load_bnc_coca_bands()
 
 class LexicalAnalyzer:
     def __init__(self, k_bands=None):
@@ -84,6 +107,7 @@ class LexicalAnalyzer:
         
         tokens_total = len(tokens_list)
         types_total = len(set(tokens_str))
+        lemmas_total = len(set(lemmas_str))
         
         content_pos = {"NOUN", "VERB", "ADJ", "ADV"}
         
@@ -116,7 +140,8 @@ class LexicalAnalyzer:
             "Level": level,
             "Text": text,
             "Tokens_total": tokens_total,
-            "Types_total": types_total
+            "Types_total": types_total,
+            "Lemma_total": lemmas_total
         }
         
         for pos, t_list in pos_data.items():
@@ -140,8 +165,10 @@ class LexicalAnalyzer:
         k_counts = {f"K{i}": 0 for i in range(1, 26)}
         k_counts["OFF"] = 0
         
-        for lemma in lemmas_str:
-            band = self.k_bands.get(lemma, "OFF")
+        for token, lemma in zip(tokens_str, lemmas_str):
+            band = self.k_bands.get(token, self.k_bands.get(lemma, "OFF"))
+            if band not in k_counts:
+                band = "OFF"
             k_counts[band] += 1
             if band != "OFF":
                 families_found.add(lemma) 
